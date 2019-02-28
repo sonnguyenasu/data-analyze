@@ -39,10 +39,15 @@ First week of VNPT Internship:
     plt.show()  
 
   ```
+
 - Outcome:
  
  ![alt text](https://github.com/tson1997/data-analyze/blob/master/20190220.jpg)
+
+
+
 2. Implement MySQL Workbench to manipulate the data more easily
+
 3. Learn to connect python and MySQL through mysql.connector library
 - Use the library to re-implement the code above:
     ```python
@@ -88,5 +93,68 @@ First week of VNPT Internship:
     plt.show()
     ```
 -> **Note:** MySQL makes it easier and faster to implement the code on data those are big in size
+
+
+3. Using MySQL and Python to analyze the Nobel Prize database
+
+4. Using MySQL and Python to analyze the EPL database 
+- The database (csv file) is at: https://datahub.io/sports-data/english-premier-league
+- MySQL code for finding the season ranking:
+```SQL
+CREATE TABLE Home 
+SELECT HomeTeam, COUNT(*) AS HomeWin
+FROM season1718
+WHERE FTR = 'H'
+GROUP BY HomeTeam;
+
+CREATE TABLE HomeL 
+SELECT HomeTeam, COUNT(*) AS HomeLose
+FROM season1718
+WHERE FTR = 'A'
+GROUP BY HomeTeam;
+
+CREATE TABLE Away
+SELECT AwayTeam, COUNT(*) AS AwayWin
+FROM season1718
+WHERE FTR = 'A'
+GROUP BY AwayTeam;
+
+CREATE TABLE AwayL
+SELECT AwayTeam, COUNT(*) AS AwayLose
+FROM season1718
+WHERE FTR = 'H'
+GROUP BY AwayTeam;
+
+CREATE TABLE joint
+SELECT HomeTeam, HomeWin, AwayWin
+FROM Home JOIN Away
+ON HomeTeam = AwayTeam;
+
+CREATE TABLE jointL
+SELECT HomeTeam, HomeLose, AwayLose
+FROM HomeL JOIN AwayL
+ON HomeTeam = AwayTeam;
+
+CREATE TABLE ranking1718
+(id INT)
+SELECT joint.HomeTeam AS Team, HomeWin + AwayWin AS Win, HomeLose+ AwayLose AS Lose, ( HomeWin + AwayWin)*3 + (38 - HomeWin - HomeLose- AwayWin - AwayLose) AS Pts
+FROM joint
+JOIN jointL
+ON joint.HomeTeam = jointL.HomeTeam;
+
+ALTER TABLE ranking1718
+ADD COLUMN Deuce INT AFTER Win;
+
+UPDATE ranking1718
+SET Deuce = 38 - Win - Lose;
+
+SELECT RANK() OVER(ORDER BY Lose,Pts DESC) AS Ranking, Team, Win, Lose, Pts FROM ranking1718;
+
+DROP TABLE away, awayl,home,homel,joint, jointl;
+
+
+```
+- Compare total number of goals between two teams by months
+
 
 
